@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>타이핑 낙하 게임 (Space X Launch)</title>
+  <style>
+    :root{
+      --text:#eef2ff;
+      --muted:#aab3d9;
+      --good:#36d399;
+      --bad:#ff6b6b;
+      --warn:#ffd166;
+      --accent:#7aa2f7;
+      --shadow: 0 18px 40px rgba(0,0,0,.35);
+    }
+    *{box-sizing:border-box;}
+    html,body{height:100%;}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+      color:var(--text);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      background:#050712;
+    }
+
+    /* ====== 배경: 하늘 + 로켓 발사 (내장 SVG) ====== */
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      z-index:-2;
+      background-image:
+        linear-gradient(180deg, rgba(5,7,18,1) 0%, rgba(8,16,43,1) 45%, rgba(20,58,92,1) 100%),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1600' height='900' viewBox='0 0 1600 900'%3E%3Cdefs%3E%3CradialGradient id='g' cx='30%25' cy='20%25' r='80%25'%3E%3Cstop offset='0%25' stop-color='%23233a7a' stop-opacity='.95'/%3E%3Cstop offset='60%25' stop-color='%230b1026' stop-opacity='.95'/%3E%3Cstop offset='100%25' stop-color='%23050712'/%3E%3C/radialGradient%3E%3ClinearGradient id='smoke' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0%25' stop-color='%23ffffff' stop-opacity='.65'/%3E%3Cstop offset='100%25' stop-color='%23ffffff' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='flame' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0%25' stop-color='%23ffd166'/%3E%3Cstop offset='50%25' stop-color='%23ff8b5a'/%3E%3Cstop offset='100%25' stop-color='%23ff4d6d'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='1600' height='900' fill='url(%23g)'/%3E%3Cg opacity='.9'%3E%3Ccircle cx='120' cy='120' r='2' fill='%23ffffff'/%3E%3Ccircle cx='380' cy='90' r='1.6' fill='%23ffffff'/%3E%3Ccircle cx='650' cy='140' r='1.3' fill='%23ffffff'/%3E%3Ccircle cx='1020' cy='100' r='1.8' fill='%23ffffff'/%3E%3Ccircle cx='1380' cy='150' r='1.2' fill='%23ffffff'/%3E%3Ccircle cx='1450' cy='70' r='1.5' fill='%23ffffff'/%3E%3Ccircle cx='980' cy='220' r='1.2' fill='%23ffffff'/%3E%3Ccircle cx='260' cy='220' r='1.1' fill='%23ffffff'/%3E%3Ccircle cx='540' cy='240' r='1.0' fill='%23ffffff'/%3E%3Ccircle cx='1220' cy='260' r='1.0' fill='%23ffffff'/%3E%3C/g%3E%3Cpath d='M0 720 C220 660 420 740 640 700 C860 660 1060 740 1280 705 C1440 680 1520 690 1600 705 L1600 900 L0 900 Z' fill='%230a0f24' opacity='.55'/%3E%3Cpath d='M0 760 C240 720 440 800 660 770 C880 740 1080 820 1300 790 C1460 770 1525 780 1600 790 L1600 900 L0 900 Z' fill='%23070b1a' opacity='.65'/%3E%3Cg transform='translate(1050 160) rotate(-8)'%3E%3Cpath d='M70 20 C120 40 145 80 140 125 C136 170 100 205 60 210 C20 215 -10 185 -18 150 C-28 110 -6 55 40 28 C52 21 62 18 70 20 Z' fill='url(%23smoke)' opacity='.35'/%3E%3Cpath d='M20 210 C60 120 90 70 125 30 C148 5 170 8 185 26 C200 44 197 70 180 98 C145 150 110 195 70 245 C56 262 35 264 22 252 C10 242 9 226 20 210 Z' fill='url(%23smoke)' opacity='.45'/%3E%3Cg transform='translate(140 40)'%3E%3Crect x='-10' y='0' width='20' height='180' rx='10' fill='%23f1f5ff' opacity='.92'/%3E%3Crect x='-7' y='18' width='14' height='100' rx='7' fill='%23d6dcff' opacity='.85'/%3E%3Cpath d='M-10 35 L-32 65 L-10 90 Z' fill='%23d6dcff' opacity='.85'/%3E%3Cpath d='M10 35 L32 65 L10 90 Z' fill='%23d6dcff' opacity='.85'/%3E%3Cpath d='M-10 165 L0 190 L10 165 Z' fill='%23f1f5ff' opacity='.95'/%3E%3Cpath d='M-6 190 C-12 235 12 235 6 190 Z' fill='url(%23flame)' opacity='.95'/%3E%3Cpath d='M0 210 C-20 250 20 250 0 210 Z' fill='url(%23flame)' opacity='.7'/%3E%3Ccircle cx='0' cy='55' r='8' fill='%230b1026' opacity='.65'/%3E%3Ctext x='0' y='140' text-anchor='middle' font-family='Arial' font-size='14' fill='%230b1026' opacity='.85'%3ESPACE%20X%3C/text%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+      background-size: cover, cover;
+      background-position: center, center;
+      filter:saturate(1.05) contrast(1.02);
+    }
+    body::after{
+      content:"";
+      position:fixed;
+      inset:0;
+      z-index:-1;
+      background: radial-gradient(1200px 600px at 30% 20%, rgba(122,162,247,.18), rgba(0,0,0,0) 60%);
+      pointer-events:none;
+    }
+
+    .shell{
+      width:min(980px, 100%);
+      display:grid;
+      grid-template-columns: 360px 1fr;
+      gap:14px;
+    }
+    @media (max-width: 940px){
+      .shell{grid-template-columns: 1fr;}
+    }
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:18px;
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      backdrop-filter: blur(10px);
+    }
+
+    .top{
+      padding:14px 16px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      background: rgba(0,0,0,.20);
+      border-bottom:1px solid rgba(255,255,255,.08);
+    }
+    .title h2{margin:0; font-size:16px; letter-spacing:.2px;}
+    .title .sub{margin-top:4px; color:var(--muted); font-size:12px; line-height:1.3;}
+    .btns{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;}
+    button{
+      border:1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.06);
+      color:var(--text);
+      padding:9px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      font-weight:700;
+      font-size:13px;
+    }
+    button:hover{background: rgba(255,255,255,.10);}
+    button.primary{border-color: rgba(122,162,247,.70); background: rgba(122,162,247,.14);}
+
+    .left{
+      display:flex;
+      flex-direction:column;
+      min-height:560px;
+    }
+
+    .hud{
+      padding:14px 16px;
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+    }
+    .panel{
+      background: rgba(0,0,0,.22);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:14px;
+      padding:12px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+    }
+    .label{color:var(--muted); font-size:12px;}
+    .value{font-weight:900; font-size:16px; letter-spacing:.3px;}
+    .value.small{font-size:14px; font-weight:800;}
+
+    .controls{
+      padding:0 16px 16px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    input{
+      width:100%;
+      font-size:16px;
+      padding:12px 14px;
+      border-radius:14px;
+      outline:none;
+      border:1px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.25);
+      color: var(--text);
+    }
+    input::placeholder{color: rgba(233,236,255,.55);}
+    input.good{border-color: rgba(54,211,153,.75);}
+    input.bad{border-color: rgba(255,107,107,.75);}
+
+    .hint{
+      color: rgba(233,236,255,.65);
+      font-size:12.5px;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .kbd{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size:12px; padding:2px 6px; border:1px solid rgba(255,255,255,.18); border-bottom-width:2px; border-radius:8px; background: rgba(255,255,255,.06);}
+
+    /* 설정 UI */
+    .settings{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+      margin-top:2px;
+    }
+    .settingItem{
+      background: rgba(0,0,0,.18);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:14px;
+      padding:10px;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .settingItem .row{display:flex; align-items:center; justify-content:space-between; gap:10px;}
+    .settingItem label{font-size:12px; color:var(--muted);}
+    select{
+      width:100%;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.25);
+      color: var(--text);
+      outline:none;
+      font-weight:800;
+    }
+    input[type="range"]{width:100%;}
+    .pill{
+      font-size:12px;
+      font-weight:900;
+      padding:3px 8px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.06);
+      white-space:nowrap;
+    }
+
+    .log{
+      padding:12px 16px 16px;
+      border-top:1px solid rgba(255,255,255,.08);
+      color:var(--muted);
+      font-size:13px;
+      min-height:54px;
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .log b{color:var(--text);}
+
+    .right{
+      position:relative;
+      min-height:560px;
+    }
+
+    /* ===== 플레이필드 ===== */
+    .arena{
+      position:relative;
+      height:100%;
+      min-height:560px;
+      overflow:hidden;
+      border-radius:18px;
+      background: rgba(0,0,0,.12);
+    }
+    .arena::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+      pointer-events:none;
+      z-index:0;
+    }
+    .laneLine{
+      position:absolute;
+      inset:0;
+      background-image: linear-gradient(90deg, rgba(255,255,255,.08) 1px, rgba(0,0,0,0) 1px);
+      background-size: 25% 100%;
+      opacity:.20;
+      z-index:0;
+      pointer-events:none;
+    }
+    .dangerLine{
+      position:absolute;
+      left:0; right:0;
+      bottom:96px;
+      height:0;
+      border-top:2px dashed rgba(255,107,107,.55);
+      z-index:1;
+      pointer-events:none;
+      filter: drop-shadow(0 6px 10px rgba(0,0,0,.35));
+    }
+    .dangerLabel{
+      position:absolute;
+      right:10px;
+      bottom:104px;
+      font-size:12px;
+      color: rgba(255,107,107,.85);
+      z-index:1;
+      user-select:none;
+      text-shadow: 0 8px 18px rgba(0,0,0,.5);
+    }
+
+    .wordToken{
+      position:absolute;
+      z-index:2;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.30);
+      backdrop-filter: blur(8px);
+      font-weight:900;
+      letter-spacing:.4px;
+      text-shadow: 0 8px 18px rgba(0,0,0,.5);
+      user-select:none;
+      will-change: transform;
+      transform: translate3d(0,0,0);
+      display:flex;
+      align-items:center;
+      gap:10px;
+      max-width: 90%;
+    }
+    .wordToken .mini{
+      font-size:11px;
+      padding:4px 8px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      font-weight:900;
+      white-space:nowrap;
+    }
+    .wordToken .text{font-size:18px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+
+    .wordToken.gold{border-color: rgba(54,211,153,.55); background: rgba(54,211,153,.10);}
+    .wordToken.gold .mini{border-color: rgba(54,211,153,.55); background: rgba(54,211,153,.10); color:#c9ffe8;}
+
+    .wordToken.curse{border-color: rgba(255,107,107,.55); background: rgba(255,107,107,.10);}
+    .wordToken.curse .mini{border-color: rgba(255,107,107,.55); background: rgba(255,107,107,.10); color:#ffd1d1;}
+
+    .wordToken.normal{border-color: rgba(255,209,102,.55); background: rgba(255,209,102,.08);}
+    .wordToken.normal .mini{border-color: rgba(255,209,102,.55); background: rgba(255,209,102,.10); color:#fff2c7;}
+
+    /* 타격감 */
+    .shake{animation: shake 240ms ease-in-out;}
+    @keyframes shake{
+      0%{transform:translate3d(0,0,0)}
+      25%{transform:translate3d(6px,0,0)}
+      50%{transform:translate3d(-6px,0,0)}
+      75%{transform:translate3d(4px,0,0)}
+      100%{transform:translate3d(0,0,0)}
+    }
+
+    .pop{
+      position:absolute;
+      z-index:3;
+      width:10px;
+      height:10px;
+      border-radius:50%;
+      background: rgba(255,255,255,.9);
+      pointer-events:none;
+      mix-blend-mode: screen;
+    }
+
+    .overlay{
+      position:absolute;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index:10;
+      background: rgba(0,0,0,.35);
+      backdrop-filter: blur(10px);
+      opacity:0;
+      pointer-events:none;
+      transition: opacity .18s ease;
+    }
+    .overlay.show{opacity:1; pointer-events:auto;}
+    .modal{
+      width:min(520px, 92%);
+      background: rgba(0,0,0,.45);
+      border:1px solid rgba(255,255,255,.18);
+      border-radius:18px;
+      padding:16px;
+      box-shadow: var(--shadow);
+    }
+    .modal .big{font-size:18px; font-weight:1000; margin:0 0 8px 0;}
+    .modal .muted{color:var(--muted); font-size:13px; line-height:1.45; white-space:pre-line;}
+    .modal .row{display:flex; gap:10px; margin-top:12px; flex-wrap:wrap;}
+
+    .smallNote{opacity:.75; font-size:12px; padding:0 16px 16px;}
+  </style>
+</head>
+<body>
+  <div class="shell">
+
+    <div class="card left">
+      <div class="top">
+        <div class="title">
+          <h2>🚀 낙하 타이핑: Launch Mode</h2>
+          <div class="sub">단어가 위에서 떨어진다. <b>바닥선</b> 전에 치면 점수/보상, 놓치면 라이프/점수 패널티.</div>
+        </div>
+        <div class="btns">
+          <button id="btnPause">일시정지</button>
+          <button class="primary" id="btnRestart">다시하기</button>
+        </div>
+      </div>
+
+      <div class="hud">
+        <div class="panel">
+          <div>
+            <div class="label">점수</div>
+            <div class="value" id="score">0</div>
+          </div>
+          <div style="text-align:right">
+            <div class="label">배수</div>
+            <div class="value" id="mult">x1.0</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div>
+            <div class="label">라이프</div>
+            <div class="value small" id="lives">❤❤❤</div>
+          </div>
+          <div style="text-align:right">
+            <div class="label">레벨</div>
+            <div class="value" id="level">1</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div>
+            <div class="label">콤보</div>
+            <div class="value" id="streak">0</div>
+          </div>
+          <div style="text-align:right">
+            <div class="label">최고 콤보</div>
+            <div class="value" id="best">0</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div>
+            <div class="label">미션</div>
+            <div class="value" id="mission">—</div>
+          </div>
+          <div style="text-align:right">
+            <div class="label">속도</div>
+            <div class="value" id="speed">1.0x</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <input id="input" placeholder="단어 입력 후 Enter (아무 단어든 정확히!)" autocomplete="off" />
+
+        <div class="settings">
+          <div class="settingItem">
+            <div class="row">
+              <label for="difficulty">난이도</label>
+              <span class="pill" id="diffPill">Easy</span>
+            </div>
+            <select id="difficulty">
+              <option value="easy" selected>Easy (아주 천천히 / 아주 적게)</option>
+              <option value="normal">Normal</option>
+              <option value="hard">Hard</option>
+            </select>
+          </div>
+
+          <div class="settingItem">
+            <div class="row">
+              <label for="levelRange">레벨(수동)</label>
+              <span class="pill" id="levelPill">1</span>
+            </div>
+            <input id="levelRange" type="range" min="1" max="20" value="1" />
+            <div class="row" style="margin-top:2px;">
+              <label style="display:flex;align-items:center;gap:8px; cursor:pointer; user-select:none;">
+                <input id="autoLevel" type="checkbox" checked />
+                자동 레벨업
+              </label>
+              <span class="pill" id="autoPill">ON</span>
+            </div>
+          </div>
+
+          <div class="settingItem">
+            <div class="row">
+              <label for="livesRange">라이프(시작/최대)</label>
+              <span class="pill" id="livesPill">5</span>
+            </div>
+            <input id="livesRange" type="range" min="1" max="9" value="5" />
+            <div class="row" style="margin-top:2px;">
+              <label style="opacity:.9; font-size:12px; color:var(--muted);">쉬우면 6~9 추천</label>
+              <span class="pill" id="livesMaxPill">MAX 5</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hint">
+          <div>조작: <span class="kbd">Enter</span> 제출 · <span class="kbd">Esc</span> 일시정지</div>
+          <div>특수: <span class="kbd">GOLD</span> 보상↑ · <span class="kbd">CURSE</span> 패널티↑</div>
+        </div>
+      </div>
+
+      <div class="log">
+        <div id="msg"></div>
+        <div><span style="opacity:.8">상태:</span> <b id="status">READY</b></div>
+      </div>
+
+      <div class="smallNote">※ 배경은 “하늘에 SPACE X 로켓이 우주로 발사되는 느낌”의 <b>자체 제작</b> 일러스트(SVG)로 넣어뒀어. (실제 로고/사진 그대로는 아님)</div>
+    </div>
+
+    <div class="card right">
+      <div class="arena" id="arena" aria-label="playfield">
+        <div class="laneLine"></div>
+        <div class="dangerLine"></div>
+        <div class="dangerLabel">DANGER LINE</div>
+
+        <div class="overlay" id="overlay">
+          <div class="modal">
+            <div class="big" id="endTitle">게임 오버</div>
+            <div class="muted" id="endBody"></div>
+            <div class="row">
+              <button class="primary" id="btnRestart2">다시하기</button>
+              <button id="btnClose">닫기</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // =====================
+    // 단어 풀
+    // =====================
+    const EASY_WORDS = [
+      'cat','dog','sun','sky','run','go','yes','no','map','pen','cup','tea','hot','cool','code','wifi','usb','key','tap','win'
+    ];
+
+    const WORDS = [
+      'apple','banana','orange','keyboard','javascript','coding','computer','internet','python','linux','typing','developer',
+      'wireless','firmware','driver','kernel','module','antenna','throughput','latency','packet','debugging','embedded','compile',
+      'bluetooth','lorawan','provision','certificate','regression','interface','network','wpa3','backport','terminal','reboot',
+      'launch','orbit','payload','booster','telemetry','guidance','throttle','staging','reentry','landing'
+    ];
+
+    const SPECIAL = {
+      GOLD: ['reward','bonus','treasure','jackpot','streak','fuel'],
+      CURSE: ['penalty','damage','mistake','timeout','curse','scrub']
+    };
+
+    // =====================
+    // DOM
+    // =====================
+    const arena = document.getElementById('arena');
+    const inputEl = document.getElementById('input');
+
+    const scoreEl = document.getElementById('score');
+    const multEl  = document.getElementById('mult');
+    const livesEl = document.getElementById('lives');
+    const levelEl = document.getElementById('level');
+    const streakEl= document.getElementById('streak');
+    const bestEl  = document.getElementById('best');
+    const missionEl = document.getElementById('mission');
+    const speedEl = document.getElementById('speed');
+
+    const msgEl = document.getElementById('msg');
+    const statusEl = document.getElementById('status');
+
+    const btnPause = document.getElementById('btnPause');
+    const btnRestart = document.getElementById('btnRestart');
+    const btnRestart2 = document.getElementById('btnRestart2');
+    const btnClose = document.getElementById('btnClose');
+
+    const overlay = document.getElementById('overlay');
+    const endTitleEl = document.getElementById('endTitle');
+    const endBodyEl = document.getElementById('endBody');
+
+    // 설정 UI
+    const difficultyEl = document.getElementById('difficulty');
+    const diffPillEl = document.getElementById('diffPill');
+    const levelRangeEl = document.getElementById('levelRange');
+    const levelPillEl = document.getElementById('levelPill');
+    const autoLevelEl = document.getElementById('autoLevel');
+    const autoPillEl = document.getElementById('autoPill');
+
+    // 라이프 설정 UI
+    const livesRangeEl = document.getElementById('livesRange');
+    const livesPillEl = document.getElementById('livesPill');
+    const livesMaxPillEl = document.getElementById('livesMaxPill');
+
+    // =====================
+    // 난이도 프리셋
+    // =====================
+    const PRESETS = {
+      easy: {
+        label: 'Easy',
+        // ✅✅ 더 쉬운 Easy(레벨1): 아주 느리게 + 아주 적게
+        baseSpawnMs: 3200,
+        baseSpeedMul: 0.50,
+        maxTokens: 3,
+        scorePerLevel: 2200,
+        curseBonus: -0.05,
+        goldP: 0.14,
+        curseBase: 0.01
+      },
+      normal: {
+        label: 'Normal',
+        baseSpawnMs: 1300,
+        baseSpeedMul: 0.95,
+        maxTokens: 9,
+        scorePerLevel: 520,
+        curseBonus: 0.02,
+        goldP: 0.12,
+        curseBase: 0.07
+      },
+      hard: {
+        label: 'Hard',
+        baseSpawnMs: 950,
+        baseSpeedMul: 1.12,
+        maxTokens: 12,
+        scorePerLevel: 360,
+        curseBonus: 0.05,
+        goldP: 0.12,
+        curseBase: 0.09
+      }
+    };
+
+    // =====================
+    // 게임 상태
+    // =====================
+    let score = 0;
+    let lives = 5;
+    let maxLives = 5;
+    let streak = 0;
+    let bestStreak = 0;
+    let multiplier = 1.0;
+
+    let level = 1;
+    let speedMul = 1.0;
+
+    let paused = false;
+    let gameOver = false;
+
+    // 스폰/난이도
+    let spawnEveryMs = 1200;
+    let lastSpawn = 0;
+    let maxTokens = 10;
+    let scorePerLevel = 450;
+    let curseBonus = 0.02;
+
+    // 플레이필드
+    const tokens = []; // {id, word, type, x, y, speed, el, createdAt}
+    let nextId = 1;
+
+    // 라인(바닥 전에 처리)
+    let dangerY = 0;
+
+    // 미션(짧게): 연속 n개 맞히면 보너스
+    let missionTarget = 6;
+    let missionProgress = 0;
+
+    // =====================
+    // 유틸
+    // =====================
+    const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
+
+    function setMsg(text, tone='neutral'){
+      const prefix = tone==='good' ? '✅ ' : tone==='bad' ? '💥 ' : tone==='warn' ? '⚠️ ' : '';
+      msgEl.textContent = text ? prefix + text : '';
+    }
+
+    function updateMultiplier(){
+      // ✅ 콤보 보상 강화: 매 콤보마다 조금씩 올라가고, 최대 x4.0
+      multiplier = clamp(1.0 + streak * 0.06, 1.0, 4.0);
+    }
+
+    function renderHud(){
+      scoreEl.textContent = Math.floor(score);
+      multEl.textContent = 'x' + multiplier.toFixed(2);
+
+      // 하트는 최대치 기준으로 표시
+      const filled = '❤'.repeat(lives);
+      const empty = '🖤'.repeat(Math.max(0, maxLives - lives));
+      livesEl.textContent = filled + empty;
+
+      levelEl.textContent = level;
+      streakEl.textContent = streak;
+      bestEl.textContent = bestStreak;
+      speedEl.textContent = speedMul.toFixed(2) + 'x';
+      missionEl.textContent = `${missionProgress}/${missionTarget}`;
+    }
+
+    function applySettingsFromUI(){
+      const preset = PRESETS[difficultyEl.value] ?? PRESETS.easy;
+      diffPillEl.textContent = preset.label;
+
+      // 라이프(시작/최대)
+      maxLives = parseInt(livesRangeEl.value, 10);
+      livesPillEl.textContent = String(maxLives);
+      livesMaxPillEl.textContent = `MAX ${maxLives}`;
+
+      // 레벨/자동 레벨업 표시
+      levelPillEl.textContent = levelRangeEl.value;
+      autoPillEl.textContent = autoLevelEl.checked ? 'ON' : 'OFF';
+
+      // 자동이 꺼져있으면, 게임 레벨은 슬라이더 값으로 고정
+      if (!autoLevelEl.checked) {
+        level = parseInt(levelRangeEl.value, 10);
+      }
+
+      // ✅ 속도/스폰은 레벨/난이도에 따라 항상 다시 계산
+      recalcRates();
+      renderHud();
+    }
+
+    function pickType(){
+      // ✅ Easy/레벨1에서는 CURSE를 0%로
+      const preset = PRESETS[difficultyEl.value] ?? PRESETS.easy;
+      let goldP = preset.goldP;
+
+      let curseP = clamp(
+        (preset.curseBase + (level-1)*0.004 + curseBonus),
+        0.00,
+        0.30
+      );
+
+      if (difficultyEl.value === 'easy' && level === 1) {
+        curseP = 0.00;
+        goldP = 0.16;
+      }
+
+      const r = Math.random();
+      if (r < goldP) return 'GOLD';
+      if (r < goldP + curseP) return 'CURSE';
+      return 'NORMAL';
+    }
+
+    function pickWord(type){
+      if (type === 'GOLD') return SPECIAL.GOLD[Math.floor(Math.random()*SPECIAL.GOLD.length)];
+      if (type === 'CURSE') return SPECIAL.CURSE[Math.floor(Math.random()*SPECIAL.CURSE.length)];
+
+      // ✅ 레벨 1~2 + Easy는 짧은 단어 위주
+      if (difficultyEl.value === 'easy' && level <= 2) {
+        return EASY_WORDS[Math.floor(Math.random()*EASY_WORDS.length)];
+      }
+      return WORDS[Math.floor(Math.random()*WORDS.length)];
+    }
+
+    function computeBaseSpeed(word, type){
+      // ✅✅ 레벨1 기본속도(단어 자체 속도) — speedMul은 별도 배수
+      let base = 46 + (level-1)*4;
+      base += clamp(word.length*1.2, 0, 12);
+      if (type==='GOLD') base *= 1.02;
+      if (type==='CURSE') base *= 1.06;
+      return base;
+    }
+
+    function syncTokenSpeeds(){
+      // speedMul이 바뀌면 이미 떨어지는 토큰도 즉시 반영
+      for (const t of tokens){
+        t.speed = t.baseSpeed * speedMul;
+      }
+    }
+
+    function recalcRates(){
+      const preset = PRESETS[difficultyEl.value] ?? PRESETS.easy;
+
+      // 점수 기반 자동 레벨업에 쓰이는 값
+      scorePerLevel = preset.scorePerLevel;
+      curseBonus = preset.curseBonus;
+
+      // 레벨에 따른 스폰/속도
+      spawnEveryMs = clamp(preset.baseSpawnMs - (level-1)*25, 900, preset.baseSpawnMs);
+      speedMul = clamp(preset.baseSpeedMul + (level-1)*0.020, 0.45, 1.8);
+      maxTokens = preset.maxTokens + Math.floor((level-1)/6);
+
+      // HUD 즉시 반영
+      speedEl.textContent = speedMul.toFixed(2) + 'x';
+      syncTokenSpeeds();
+    }
+
+    function laneX(){
+      // 4레인 느낌 (25% 단위)
+      const w = arena.clientWidth;
+      const lanes = 4;
+      const lane = Math.floor(Math.random()*lanes);
+      const padding = 14;
+      const laneW = (w - padding*2) / lanes;
+      const x = padding + lane*laneW + (laneW*0.5);
+      return x;
+    }
+
+    function createToken(){
+      const type = pickType();
+      const word = pickWord(type);
+      const el = document.createElement('div');
+      el.className = 'wordToken ' + (type==='GOLD'?'gold':type==='CURSE'?'curse':'normal');
+      el.innerHTML = `<span class="mini">${type}</span><span class="text"></span>`;
+      el.querySelector('.text').textContent = word;
+      arena.appendChild(el);
+
+      const x = laneX();
+      const y = -40;
+      const baseSpeed = computeBaseSpeed(word, type);
+      const speed = baseSpeed * speedMul;
+
+      const token = { id: nextId++, word, type, x, y, baseSpeed, speed, el, createdAt: performance.now() };
+      tokens.push(token);
+
+      requestAnimationFrame(()=>{
+        const rect = el.getBoundingClientRect();
+        token.x = clamp(token.x - rect.width/2, 10, arena.clientWidth - rect.width - 10);
+        el.style.transform = `translate3d(${token.x}px, ${token.y}px, 0)`;
+      });
+    }
+
+    function removeToken(t){
+      const idx = tokens.findIndex(x=>x.id===t.id);
+      if (idx >= 0) tokens.splice(idx,1);
+      t.el.remove();
+    }
+
+    function popFX(x,y){
+      const n = 10;
+      for (let i=0;i<n;i++){
+        const p = document.createElement('div');
+        p.className = 'pop';
+        arena.appendChild(p);
+
+        const ang = Math.random()*Math.PI*2;
+        const sp  = 40 + Math.random()*130;
+        const dx = Math.cos(ang)*sp;
+        const dy = Math.sin(ang)*sp;
+
+        p.style.left = (x-5) + 'px';
+        p.style.top  = (y-5) + 'px';
+        p.style.opacity = '0.95';
+
+        const start = performance.now();
+        const dur = 420 + Math.random()*220;
+
+        const tick = (now)=>{
+          const t = clamp((now-start)/dur, 0, 1);
+          const ease = 1 - Math.pow(1-t, 3);
+          const px = x + dx*ease;
+          const py = y + dy*ease + 60*t;
+          p.style.transform = `translate3d(${px-x}px, ${py-y}px, 0) scale(${1 - t*0.6})`;
+          p.style.opacity = (1-t).toFixed(3);
+          if (t<1) requestAnimationFrame(tick);
+          else p.remove();
+        };
+        requestAnimationFrame(tick);
+      }
+    }
+
+    function arenaShake(){
+      arena.classList.remove('shake');
+      void arena.offsetWidth;
+      arena.classList.add('shake');
+    }
+
+    function applyCorrect(token){
+      // ✅ 콤보 점수 구조 강화
+      const base = 10;
+      const lenBonus = token.word.length;
+      const special = token.type==='GOLD' ? 18 : token.type==='CURSE' ? 8 : 6;
+
+      // 콤보가 쌓일수록 추가 가산점이 커짐
+      const comboAdd = Math.floor(streak * 2.0) + Math.floor(Math.pow(streak, 1.15) * 0.9);
+
+      const gained = (base + lenBonus + special + comboAdd) * multiplier;
+      score += gained;
+
+      if (token.type==='GOLD' && lives < maxLives && Math.random() < 0.28) {
+        lives += 1;
+        setMsg(`+${Math.floor(gained)}점 · 💚 라이프 +1`, 'good');
+      } else {
+        setMsg(`+${Math.floor(gained)}점 (콤보+${comboAdd})`, 'good');
+      }
+
+      streak += 1;
+      bestStreak = Math.max(bestStreak, streak);
+      updateMultiplier();
+
+      missionProgress += 1;
+      if (missionProgress >= missionTarget){
+        score += 140 * multiplier;
+        speedMul = clamp(speedMul - 0.12, 0.55, 2.0);
+        missionTarget = clamp(missionTarget + 1, 6, 12);
+        missionProgress = 0;
+        setMsg(`미션 완료! +${Math.floor(140*multiplier)}점 · 속도 완화`, 'good');
+      }
+
+      popFX(token.x + token.el.offsetWidth/2, token.y + 18);
+      removeToken(token);
+      renderHud();
+    }
+
+    function applyWrong(reason, tokenType='NORMAL'){
+      const scorePenalty = tokenType==='CURSE' ? 15 : 9;
+      const lifePenalty  = tokenType==='CURSE' ? 2 : 1;
+
+      score = Math.max(0, score - scorePenalty);
+      lives = Math.max(0, lives - lifePenalty);
+
+      streak = 0;
+      updateMultiplier();
+      missionProgress = 0;
+
+      setMsg(`${reason} (-${scorePenalty}점, 라이프 -${lifePenalty})`, 'bad');
+      arenaShake();
+      renderHud();
+
+      if (lives <= 0) {
+        endGame('라이프 0... 게임 오버 😵', `최종 점수: ${Math.floor(score)}
+최고 콤보: ${bestStreak}
+레벨: ${level}
+
+팁) 아래 설정에서 난이도를 Easy로 내리거나, 자동 레벨업을 끄고 레벨을 낮춰봐!`);
+      }
+    }
+
+    function submit(){
+      if (paused || gameOver) return;
+      const typed = inputEl.value.trim();
+      if (!typed) {
+        setMsg('입력이 비었어. 단어를 치고 Enter!', 'warn');
+        return;
+      }
+
+      const candidates = tokens.filter(t => t.word === typed);
+      if (candidates.length){
+        candidates.sort((a,b)=>b.y-a.y);
+        const hit = candidates[0];
+        inputEl.value = '';
+        inputEl.classList.remove('good','bad');
+        applyCorrect(hit);
+        return;
+      }
+
+      inputEl.value = '';
+      inputEl.classList.remove('good','bad');
+      applyWrong('오타!', 'NORMAL');
+    }
+
+    function updateDifficulty(){
+      if (!autoLevelEl.checked) {
+        // 수동 레벨 모드: 슬라이더 값으로 고정
+        level = parseInt(levelRangeEl.value, 10);
+        recalcRates();
+        return;
+      }
+
+      const targetLevel = 1 + Math.floor(score / scorePerLevel);
+      if (targetLevel > level){
+        level = targetLevel;
+        // 슬라이더도 같이 따라가게
+        levelRangeEl.value = String(clamp(level, 1, 20));
+        levelPillEl.textContent = levelRangeEl.value;
+        setMsg(`레벨 업! Lv.${level}`, 'good');
+      }
+
+      // ✅ 레벨 변화가 있든 없든, 현재 레벨 기준으로 속도/스폰 재계산
+      recalcRates();
+    }
+
+    function layout(){
+      const h = arena.clientHeight;
+      dangerY = h - 96;
+    }
+
+    function loop(now){
+      // ✅ 게임오버가 한 번 나도 루프는 계속 돌게(재시작/재개 버튼 복구)
+      requestAnimationFrame(loop);
+      if (gameOver || paused) return;
+
+      layout();
+
+      if (now - lastSpawn > spawnEveryMs){
+        if (tokens.length < maxTokens) createToken();
+        lastSpawn = now;
+      }
+
+      const dt = 1/60;
+      for (const t of [...tokens]){
+        t.y += t.speed * dt;
+        t.el.style.transform = `translate3d(${t.x}px, ${t.y}px, 0)`;
+        if (t.y >= dangerY){
+          popFX(t.x + t.el.offsetWidth/2, dangerY);
+          removeToken(t);
+          applyWrong('놓쳤다! (바닥 도달)', t.type);
+          if (gameOver) break;
+        }
+      }
+
+      updateDifficulty();
+      renderHud();
+    }
+
+    function togglePause(){
+      if (gameOver) return;
+      paused = !paused;
+      btnPause.textContent = paused ? '재개' : '일시정지';
+      statusEl.textContent = paused ? 'PAUSED' : 'RUNNING';
+      inputEl.disabled = paused;
+      if (!paused) inputEl.focus();
+      setMsg(paused ? '일시정지됨' : '재개!', paused ? 'warn' : 'good');
+    }
+
+    function endGame(title, body){
+      gameOver = true;
+      paused = true;
+      statusEl.textContent = 'GAME OVER';
+      inputEl.disabled = true;
+      btnPause.disabled = true;
+      overlay.classList.add('show');
+      endTitleEl.textContent = title;
+      endBodyEl.textContent = body;
+    }
+
+    function closeOverlay(){
+      overlay.classList.remove('show');
+    }
+
+    function clearTokens(){
+      for (const t of [...tokens]) removeToken(t);
+    }
+
+    function restart(){
+      clearTokens();
+
+      score = 0;
+      lives = maxLives;
+      streak = 0;
+      bestStreak = 0;
+      multiplier = 1.0;
+
+      missionTarget = 6;
+      missionProgress = 0;
+
+      paused = false;
+      gameOver = false;
+
+      btnPause.disabled = false;
+      btnPause.textContent = '일시정지';
+
+      inputEl.disabled = false;
+      inputEl.value = '';
+      inputEl.classList.remove('good','bad');
+
+      closeOverlay();
+
+      statusEl.textContent = 'RUNNING';
+      setMsg('발사 준비… 단어가 떨어진다!', 'good');
+
+      // 설정 반영(라이프/표시) 먼저
+      applySettingsFromUI();
+
+      // 레벨 초기화/고정
+      if (autoLevelEl.checked) {
+        level = 1;
+        levelRangeEl.value = '1';
+        levelPillEl.textContent = '1';
+      } else {
+        level = parseInt(levelRangeEl.value, 10);
+      }
+
+      // ✅ 레벨이 확정된 뒤 속도/스폰을 다시 계산
+      recalcRates();
+
+      lastSpawn = performance.now();
+      renderHud();
+      inputEl.focus();
+
+      // 시작 토큰 수(난이도에 따라)
+      const startCount = difficultyEl.value === 'easy' ? 1 : difficultyEl.value === 'normal' ? 3 : 4;
+      for (let i=0;i<startCount;i++) createToken();
+    }
+
+    // =====================
+    // 이벤트
+    // =====================
+    inputEl.addEventListener('keydown', (e)=>{
+      if (e.key === 'Enter') submit();
+      if (e.key === 'Escape') togglePause();
+    });
+
+    inputEl.addEventListener('input', ()=>{
+      if (paused || gameOver) return;
+      const v = inputEl.value;
+      inputEl.classList.remove('good','bad');
+      if (!v) return;
+      const anyPrefix = tokens.some(t => t.word.startsWith(v));
+      inputEl.classList.add(anyPrefix ? 'good' : 'bad');
+    });
+
+    btnPause.addEventListener('click', togglePause);
+    btnRestart.addEventListener('click', restart);
+    btnRestart2.addEventListener('click', restart);
+    btnClose.addEventListener('click', closeOverlay);
+
+    // 설정 바꾸면 즉시 반영 (실수 방지 위해 자동으로 리스타트)
+    difficultyEl.addEventListener('change', ()=>{ applySettingsFromUI(); restart(); });
+    autoLevelEl.addEventListener('change', ()=>{ applySettingsFromUI(); restart(); });
+
+    levelRangeEl.addEventListener('input', ()=>{
+      levelPillEl.textContent = levelRangeEl.value;
+      if (!autoLevelEl.checked){
+        level = parseInt(levelRangeEl.value,10);
+        recalcRates();
+        renderHud();
+      }
+    });
+    levelRangeEl.addEventListener('change', ()=>{ if (!autoLevelEl.checked) restart(); });
+
+    // 라이프 조절
+    livesRangeEl.addEventListener('input', ()=>{
+      maxLives = parseInt(livesRangeEl.value, 10);
+      livesPillEl.textContent = String(maxLives);
+      livesMaxPillEl.textContent = `MAX ${maxLives}`;
+      lives = Math.min(lives, maxLives);
+      renderHud();
+    });
+    livesRangeEl.addEventListener('change', ()=>{ applySettingsFromUI(); restart(); });
+
+    window.addEventListener('resize', ()=>layout());
+
+    // =====================
+    // 시작
+    // =====================
+    applySettingsFromUI();
+    requestAnimationFrame(loop);
+    restart();
+  </script>
+</body>
+</html>
